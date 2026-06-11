@@ -1,5 +1,8 @@
-import React, { useState } from 'react';
-import { ShieldCheck, ArrowLeft, ArrowRight, Check, CreditCard, Sparkles, AlertCircle, FileText, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { 
+  ShieldCheck, ArrowLeft, ArrowRight, Check, CreditCard, Sparkles, 
+  AlertCircle, FileText, Download, Clock, AlertTriangle, RefreshCw, HelpCircle
+} from 'lucide-react';
 import { TravelPackage, Passenger, Reservation } from '../types';
 
 interface BookingWizardProps {
@@ -41,7 +44,7 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
   const [paymentMethod, setPaymentMethod] = useState<'credit' | 'pix'>('credit');
   const [cardHolder, setCardHolder] = useState(currentUser?.name || 'Carlos Eduardo Silva');
   const [cardNumber, setCardNumber] = useState('4455 8822 9911 3245');
-  const [cardExpiry, setCardExpiry] = useState('09/2031');
+  const [cardExpiry, setCardExpiry] = useState('09/31');
   const [cardCVV, setCardCVV] = useState('982');
   const [installments, setInstallments] = useState(1);
   
@@ -50,6 +53,19 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
   const [appliedDiscount, setAppliedDiscount] = useState(0);
   const [couponError, setCouponError] = useState('');
   const [couponSuccess, setCouponSuccess] = useState('');
+
+  // Stock Hold Timer (15 Minutes)
+  const [timerSeconds, setTimerSeconds] = useState(900); // 15 mins = 900 seconds
+  const [isHoldExpired, setIsHoldExpired] = useState(false);
+
+  // Failure Simulation choices
+  const [simulateFailure, setSimulateFailure] = useState(false);
+  const [simulateIdempotencyIssue, setSimulateIdempotencyIssue] = useState(false);
+
+  // Payment Processing visual stepper states (Image 4)
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [procStep, setProcStep] = useState<number>(0); // 0, 1, 2, 3
+  const [processingError, setProcessingError] = useState('');
 
   // Generated confirmation code
   const [confirmationCode] = useState(() => `AV-${Math.floor(100000 + Math.random() * 900000)}`);
@@ -64,6 +80,23 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
   
   const couponDiscountAmount = appliedDiscount > 0 ? basePrice * appliedDiscount : 0;
   const totalPrice = basePrice + taxAmount - cashDiscountAmount - couponDiscountAmount;
+
+  // Running hold countdown
+  useEffect(() => {
+    if (step < 5 && timerSeconds > 0) {
+      const interval = setInterval(() => {
+        setTimerSeconds(prev => {
+          if (prev <= 1) {
+            setIsHoldExpired(true);
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(interval);
+    }
+  }, [step, timerSeconds]);
 
   // Helper formatting masks
   const formatCPF = (v: string) => {
@@ -83,10 +116,10 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
     const cleanVal = v.toUpperCase();
     const hasOtherLetters = /[A-W|Y-Z]/.test(cleanVal);
     if (hasOtherLetters) {
-      return v; // Keep as-is for passports
+      return v; 
     }
-    let val = cleanVal.replace(/[^0-9X]/g, ''); // Allow digits and 'X'
-    val = val.substring(0, 9); // Limit to 9 char
+    let val = cleanVal.replace(/[^0-9X]/g, ''); 
+    val = val.substring(0, 9); 
     if (val.length > 8) {
       return `${val.substring(0, 2)}.${val.substring(2, 5)}.${val.substring(5, 8)}-${val.substring(8)}`;
     } else if (val.length > 5) {
@@ -98,8 +131,8 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
   };
 
   const formatBirthDate = (v: string) => {
-    let val = v.replace(/\D/g, ''); // Only digits
-    val = val.substring(0, 8);      // Limit to 8 digits
+    let val = v.replace(/\D/g, ''); 
+    val = val.substring(0, 8);      
     if (val.length > 4) {
       return `${val.substring(0, 2)}/${val.substring(2, 4)}/${val.substring(4)}`;
     } else if (val.length > 2) {
@@ -130,39 +163,105 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
     setCouponSuccess('');
     
     const code = couponCode.trim().toUpperCase();
+    
     if (code === 'ANGEL10' || code === 'VOYAGE10') {
       setAppliedDiscount(0.10);
       setCouponSuccess('Cupom Elite ativo! 10% de desconto adicional aplicado.');
     } else if (code === 'OFFER5') {
       setAppliedDiscount(0.05);
       setCouponSuccess('Cupom promocional! 5% de desconto adicional aplicado.');
+    } else if (code === 'EXPIRADO20') {
+      setCouponError("Cupom 'EXPIRADO20' expirou em 31/05/2026.");
+    } else if (code === 'JA_UTILIZADO') {
+      setCouponError(`Cupom já utilizado por ${currentUser?.name || 'sua conta'}.`);
+    } else if (code === 'BLACKFRIDAY') {
+      setCouponError('Cupom incompatível com pacotes promocionais já com desconto.');
     } else {
-      setCouponError('Cupom inválido ou expirado.');
+      setCouponError('Cupom inválido. Verifique o código inserido.');
     }
   };
 
+  // Simulated Async Payment trigger
   const handleConfirmOrder = () => {
-    const reservationRecord: Reservation = {
-      id: confirmationCode,
-      packageId: packageData.id,
-      packageTitle: packageData.title,
-      image: packageData.image,
-      startDate: '12 Nov 2026',
-      endDate: '20 Nov 2026',
-      adultsCount,
-      childrenCount,
-      status: paymentMethod === 'pix' ? 'Pendente Pagamento' : 'Confirmada',
-      passengers,
-      paymentMethod: paymentMethod === 'pix' ? 'Pix QrCode' : `Cartão de Crédito (${installments}x)`,
-      totalPaid: totalPrice,
-      daysToTrip: 45
-    };
-    onBookingSuccess(reservationRecord);
-    setStep(5);
+    if (isHoldExpired) {
+      alert('Sua sessão de reserva expirou. Por favor, re-ative as datas para continuar.');
+      return;
+    }
+
+    // Enter processing state representation
+    setIsProcessing(true);
+    setProcStep(0);
+    setProcessingError('');
+
+    // Step 0: validation loop
+    setTimeout(() => {
+      setProcStep(1); // validation successful, starts paying
+
+      setTimeout(() => {
+        if (simulateFailure) {
+          // Triggers payment refused error to mock retry constraints
+          setProcStep(2);
+          setTimeout(() => {
+            setProcessingError('Pagamento Recusado pela Operadora: Saldo Insuficiente ou Limite de Crédito Diário ultrapassado. Por favor, utilize outra forma de pagamento.');
+          }, 800);
+          return;
+        }
+
+        setProcStep(2); // payment successful, verifying gateway async pix/webhook (Image 4 check 3)
+
+        setTimeout(() => {
+          if (simulateIdempotencyIssue) {
+            // Simulated Idempotency warning state
+            setProcessingError('Falha temporária de rede no Gateway. Chave de idempotência ativa evitou cobrança duplicada. Por favor, tente novamente.');
+            return;
+          }
+
+          setProcStep(3); // success loop
+
+          setTimeout(() => {
+            setIsProcessing(false);
+            
+            // Save reservation record
+            const reservationRecord: Reservation = {
+              id: confirmationCode,
+              packageId: packageData.id,
+              packageTitle: packageData.title,
+              image: packageData.image,
+              startDate: '12 Nov 2026',
+              endDate: '20 Nov 2026',
+              adultsCount,
+              childrenCount,
+              status: isCashDiscount ? 'Confirmada' : 'Pendente Pagamento',
+              passengers,
+              paymentMethod: paymentMethod === 'pix' ? 'Pix QrCode' : `Cartão de Crédito (${installments}x)`,
+              totalPaid: totalPrice,
+              daysToTrip: 45
+            };
+            onBookingSuccess(reservationRecord);
+            setStep(5);
+          }, 800);
+
+        }, 1500);
+
+      }, 1500);
+
+    }, 1500);
+  };
+
+  const handleRetryPayment = () => {
+    setIsProcessing(false);
+    setProcStep(0);
+    setProcessingError('');
+    // Returns to Payment Step without losing any data!
+    setStep(4);
+  };
+
+  const renewHoldTimer = () => {
+    setTimerSeconds(900);
+    setIsHoldExpired(false);
   };
 
   const downloadVoucher = () => {
-    // Elegant Client side download trigger
     const voucherText = `
 =========================================
       ANGEL VOYAGE - VOUCHER DE CONFIRMAÇÃO
@@ -177,7 +276,7 @@ Assentos Escolhidos: ${selectedSeats.join(', ')}
 
 Total Pago: R$ ${totalPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
 Forma de Pagamento: ${paymentMethod === 'pix' ? 'Pix À Vista' : `Cartão de Crédito em ${installments}x`}
-Status da Reserva: CONFIRMADA E EMITIDA
+Status da Reserva: CONFIRMADA E EMITIDA (POST-SALE ATIVO)
 
 Desejamos a você uma extraordinária jornada de luxo e descanso!
 =========================================
@@ -193,11 +292,15 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
     document.body.removeChild(link);
   };
 
+  // Turn time seconds to readable clock MM:SS
+  const minsRemaining = Math.floor(timerSeconds / 60);
+  const secsRemaining = timerSeconds % 60;
+
   return (
-    <div className="max-w-4xl mx-auto font-sans text-[#00112f] my-6">
+    <div className="max-w-4xl mx-auto font-sans text-[#00112f] my-6 relative">
       
       {/* Checkout Steps bar indicator */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 mb-8 overflow-x-auto no-scrollbar gap-4">
+      <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-100 mb-6 overflow-x-auto no-scrollbar gap-4">
         {[2, 3, 4, 5].map((s) => (
           <div key={s} className="flex items-center gap-2 shrink-0">
             <div 
@@ -218,15 +321,55 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
         ))}
       </div>
 
+      {/* Stock Hold Alert countdown representation banner */}
+      {step < 5 && (
+        <div className={`p-4 rounded-2xl border mb-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs shadow-xs text-left transition-all ${
+          isHoldExpired 
+            ? 'bg-red-50 border-red-200 text-red-900' 
+            : timerSeconds < 120 
+              ? 'bg-red-50/70 border-red-100 text-red-900 animate-pulse' 
+              : 'bg-amber-50/60 border-amber-100 text-amber-900'
+        }`}>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Clock className={`w-4 h-4 shrink-0 ${isHoldExpired ? 'text-red-600' : 'text-amber-600'}`} />
+            <div>
+              <p className="font-bold">
+                {isHoldExpired ? 'Sessão de bloqueio de vagas expirada!' : 'Estoque Garantido! Bloqueamos estas vagas temporariamente.'}
+              </p>
+              <p className="text-[10px] text-gray-500 font-medium">
+                {isHoldExpired 
+                  ? 'Como o prazo expirou, as vagas podem sofrer alterações tarifárias ou overbooking instantâneo.' 
+                  : 'Nossos servidores garantem seus assentos no voo de luxo e sua estadia exclusiva.'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 shrink-0">
+            {isHoldExpired ? (
+              <button 
+                onClick={renewHoldTimer}
+                className="bg-red-600 hover:bg-red-700 text-white font-bold text-[10px] uppercase tracking-wider px-3 py-1.5 rounded-lg flex items-center gap-1"
+              >
+                <RefreshCw className="w-3 h-3" /> Renovar bloqueio
+              </button>
+            ) : (
+              <span className="bg-white border text-red-600 border-red-200 font-mono tracking-wider px-3 py-1 rounded-lg font-extrabold text-xs">
+                {minsRemaining}:{secsRemaining < 10 ? '0' : ''}{secsRemaining}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Main Core Form Block */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_12px_40px_rgba(15,38,76,0.04)] p-6 md:p-8">
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-[0_12px_45px_rgba(15,38,76,0.03)] p-6 md:p-8">
         
         {/* STEP 2: Passenger Data Profile */}
         {step === 2 && (
           <div className="space-y-6">
-            <div className="border-b border-gray-100 pb-3">
+            <div className="border-b border-gray-100 pb-3 text-left">
               <h2 className="font-display font-bold text-lg text-[#00112f]">Dados Requeridos para Embarque</h2>
-              <p className="text-gray-400 text-xs">Os nomes devem constar idênticos aos cadastrados no passaporte ou RG nacional.</p>
+              <p className="text-gray-400 text-xs text-left">Os nomes devem constar idênticos aos cadastrados no passaporte ou RG nacional.</p>
             </div>
 
             {passengers.map((passenger, idx) => (
@@ -333,9 +476,9 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
         {/* STEP 3: Airplane Seat selection & Resumo */}
         {step === 3 && (
           <div className="space-y-6">
-            <div className="border-b border-gray-100 pb-3">
+            <div className="border-b border-gray-100 pb-3 text-left">
               <h2 className="font-display font-bold text-lg text-[#00112f]">Mapa de Assentos Exclusivo (Premium Cabin)</h2>
-              <p className="text-gray-400 text-xs">Selecione poltronas conjuntas para sua conveniência estética de voo.</p>
+              <p className="text-gray-400 text-xs text-left">Selecione poltronas conjuntas para sua conveniência estética de voo.</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
@@ -449,7 +592,49 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
           <div className="space-y-6">
             <div className="border-b border-gray-100 pb-3 text-left">
               <h2 className="font-display font-bold text-lg text-[#00112f]">Dados Legais do Pagamento Fiduciário</h2>
-              <p className="text-gray-400 text-xs">Suas reservas contam com seguro-fiança total contra imprevistos de cancelamento.</p>
+              <p className="text-gray-400 text-xs text-left">Suas reservas contam com seguro-fiança total contra imprevistos de cancelamento.</p>
+            </div>
+
+            {/* Error simulation configuration trigger - for testing and evaluation purposes */}
+            <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 text-left space-y-3">
+              <span className="text-[10px] font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full uppercase">Módulo de Avaliação & Simulação de Erros</span>
+              <p className="text-gray-500 text-[11px] leading-relaxed">
+                Você pode simular os diferentes workflows previstos nas regras de negócio de pagamento:
+              </p>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <label className="flex items-center gap-2 cursor-pointer select-none bg-white p-2.5 rounded-xl border border-gray-100">
+                  <input 
+                    type="checkbox" 
+                    checked={simulateFailure} 
+                    onChange={(e) => {
+                      setSimulateFailure(e.target.checked);
+                      if (e.target.checked) setSimulateIdempotencyIssue(false);
+                    }} 
+                    className="accent-red-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-[#00112f] block">Simular de Pagamento Recusado</span>
+                    <span className="text-[9px] text-gray-400 block">Testa o hold imediato e re-tentativa (Retry)</span>
+                  </div>
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer select-none bg-white p-2.5 rounded-xl border border-gray-100">
+                  <input 
+                    type="checkbox" 
+                    checked={simulateIdempotencyIssue} 
+                    onChange={(e) => {
+                      setSimulateIdempotencyIssue(e.target.checked);
+                      if (e.target.checked) setSimulateFailure(false);
+                    }} 
+                    className="accent-red-500 cursor-pointer"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-[#00112f] block">Simular Alerta de Chave de Idempotência</span>
+                    <span className="text-[9px] text-gray-400 block">Simula aviso para evitar cobrança duplicada</span>
+                  </div>
+                </label>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -463,7 +648,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     type="button"
                     onClick={() => {
                       setPaymentMethod('credit');
-                      setInstallments(1); // Defaults to single installment to allow Cash checkout
+                      setInstallments(1); 
                     }}
                     className={`p-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-all ${
                       paymentMethod === 'credit'
@@ -559,7 +744,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                   </div>
                 )}
 
-                {/* Promo Coupons */}
+                {/* Promo Coupons - with comprehensive validation logic */}
                 <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100 space-y-2">
                   <label className="block text-[10px] font-bold text-gray-600 uppercase">Cupom de Desconto</label>
                   <div className="flex gap-2">
@@ -573,20 +758,22 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <button
                       type="button"
                       onClick={handleApplyCoupon}
-                      className="bg-[#0f264c] hover:bg-[#00112f] text-white text-[11px] font-semibold px-4 py-2 rounded-lg"
+                      className="bg-[#0f264c] hover:bg-[#00112f] text-white text-[11px] font-semibold px-4 py-2 rounded-lg cursor-pointer"
                     >
                       Aplicar
                     </button>
                   </div>
                   {couponError && <p className="text-xs text-red-500 font-medium flex items-center gap-1"><AlertCircle className="w-3.5 h-3.5" />{couponError}</p>}
                   {couponSuccess && <p className="text-xs text-green-600 font-semibold flex items-center gap-1"><Check className="w-3.5 h-3.5" />{couponSuccess}</p>}
-                  <p className="text-[10px] text-gray-400">Dica: Use <strong>VOYAGE10</strong> para testar um desconto de 10% adicional.</p>
+                  <p className="text-[10px] text-gray-400">
+                    Dica: Digite <strong>VOYAGE10</strong> para 10%, ou teste as simulações de erro digitando <strong>EXPIRADO20</strong>, <strong>JA_UTILIZADO</strong> ou <strong>BLACKFRIDAY</strong>.
+                  </p>
                 </div>
               </div>
 
               {/* Financial Ledger card panel */}
               <div className="lg:col-span-5 bg-white border border-gray-100 rounded-xl p-5 text-left space-y-4 shadow-sm">
-                <h4 className="font-display font-bold text-xs uppercase tracking-wider text-gray-500">Demostrativo de Valores</h4>
+                <h4 className="font-display font-bold text-xs uppercase tracking-wider text-gray-500">Demonstrativo de Valores</h4>
                 
                 <div className="space-y-2.5 text-xs">
                   <div className="flex justify-between text-gray-500">
@@ -627,7 +814,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
 
             </div>
 
-            <div className="flex justify-between items-center pt-6 border-t border-gray-100">
+            <div className="flex justify-between items-center pt-6 border-t border-gray-100 animate-fade-in">
               <button
                 onClick={() => setStep(3)}
                 className="px-5 py-2.5 rounded-lg border border-gray-200 font-semibold text-xs text-gray-500 hover:bg-gray-50 active:scale-95 transition-all text-left flex items-center gap-1.5"
@@ -639,6 +826,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
               <button
                 onClick={handleConfirmOrder}
                 className="bg-[#ff5a5f] hover:bg-[#e0454a] text-white px-8 py-3 rounded-lg text-xs font-bold uppercase tracking-wider shadow-md hover:shadow-lg cursor-pointer active:scale-95 transition-all flex items-center gap-2"
+                id="payment-final-confirm-btn"
               >
                 {paymentMethod === 'pix' ? 'Gerar Qr Code Pix' : 'Confirmar e Finalizar Reserva'}
                 <Check className="w-4 h-4" />
@@ -649,8 +837,8 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
 
         {/* STEP 5: Invoice Voucher & Success */}
         {step === 5 && (
-          <div className="space-y-6 text-center py-6">
-            <div className="w-16 h-16 bg-[#e8f5e9] text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md animate-bounce">
+          <div className="space-y-6 text-center py-6 animate-fade-in">
+            <div className="w-16 h-16 bg-[#e8f5e9] text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
               <Check className="w-10 h-10" />
             </div>
 
@@ -719,6 +907,119 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
         )}
 
       </div>
+
+      {/* OVERLAY DIALOG: PAYMENT PROCESSING & STEPPER LOADER (Image 4) */}
+      {isProcessing && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-50 animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full border border-gray-100 shadow-2xl p-6 md:p-8 space-y-6 text-center animate-scale-up relative">
+            
+            {/* Spinning/pulsator loop loader indicator code as requested */}
+            <div className="relative w-12 h-12 mx-auto">
+              <div className="absolute inset-0 rounded-full border-4 border-gray-100" />
+              <div className="absolute inset-0 rounded-full border-4 border-t-[#ff5a5f] border-r-transparent border-b-transparent border-l-transparent animate-spin" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h3 className="font-display font-black text-lg text-[#00112f]">Processando seu pagamento</h3>
+              <p className="text-gray-400 text-xs max-w-xs mx-auto">Não feche esta janela. Estamos finalizando sua reserva.</p>
+            </div>
+
+            {/* Stepper with Checkmarks matching Image 4 design */}
+            <div className="space-y-3 pt-2 text-left">
+              
+              {/* Check 1: Validando disponibilidade */}
+              <div className={`p-3 rounded-xl border flex gap-3 transition-colors ${
+                procStep > 0 
+                  ? 'bg-emerald-50/50 border-emerald-100 text-emerald-850' 
+                  : 'bg-gray-50 border-gray-100 text-gray-500'
+              }`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                  procStep > 0 
+                    ? 'bg-emerald-500 text-white' 
+                    : 'bg-gray-200 text-gray-400'
+                }`}>
+                  {procStep > 0 ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> : '•'}
+                </div>
+                <div className="text-xs">
+                  <p className="font-bold">Validando disponibilidade</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Confirmando que as vagas ainda estão reservadas.</p>
+                </div>
+              </div>
+
+              {/* Check 2: Processando pagamento */}
+              <div className={`p-3 rounded-xl border flex gap-3 transition-colors ${
+                processingError && procStep === 2
+                  ? 'bg-red-50 border-red-100 text-red-900'
+                  : procStep > 1 
+                    ? 'bg-emerald-50/50 border-emerald-100 text-emerald-850' 
+                    : procStep === 1 
+                      ? 'bg-amber-50/60 border-amber-100 text-amber-900 animate-pulse'
+                      : 'bg-gray-50 border-gray-100 text-gray-500'
+              }`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                  processingError && procStep === 2
+                    ? 'bg-red-500 text-white'
+                    : procStep > 1 
+                      ? 'bg-emerald-500 text-white' 
+                      : 'bg-gray-200 text-gray-400'
+                }`}>
+                  {processingError && procStep === 2 ? '✕' : procStep > 1 ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> : '•'}
+                </div>
+                <div className="text-xs">
+                  <p className="font-bold">Processando pagamento</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Enviando transação com chave de idempotência.</p>
+                </div>
+              </div>
+
+              {/* Check 3: Aguardando confirmação do gateway */}
+              <div className={`p-3 rounded-xl border flex gap-3 transition-colors ${
+                procStep > 2 
+                  ? 'bg-emerald-50/50 border-emerald-100 text-emerald-850' 
+                  : (procStep === 2 && !processingError)
+                    ? 'bg-amber-50/60 border-amber-100 text-amber-900 animate-pulse'
+                    : 'bg-gray-50 border-gray-100 text-gray-500'
+              }`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
+                  procStep > 2 
+                    ? 'bg-emerald-500 text-white' 
+                    : 'bg-gray-200 text-gray-400'
+                }`}>
+                  {procStep > 2 ? <Check className="w-3.5 h-3.5 stroke-[3px]" /> : '•'}
+                </div>
+                <div className="text-xs">
+                  <p className="font-bold">Aguardando confirmação do gateway</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Pagamentos PIX são confirmados de forma assíncrona.</p>
+                </div>
+              </div>
+
+            </div>
+
+            {/* ERROR / FAILURE DISMISS STATE (For Retry Support verification) */}
+            {processingError && (
+              <div className="space-y-4 pt-2 border-t border-gray-50 animate-fade-in text-left">
+                <div className="p-3 bg-red-50 border border-red-100 rounded-xl flex gap-2 text-xs text-red-900">
+                  <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-bold">Transação Recusada</p>
+                    <p className="text-[10px] text-red-700 font-semibold">{processingError}</p>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-2 text-xs">
+                  <button
+                    onClick={handleRetryPayment}
+                    className="w-full bg-[#ff5a5f] hover:bg-red-500 text-white py-2.5 rounded-xl font-bold uppercase tracking-wider flex items-center justify-center gap-1 cursor-pointer active:scale-95 transition-all"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" /> Tentar Novamente (Retry)
+                  </button>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

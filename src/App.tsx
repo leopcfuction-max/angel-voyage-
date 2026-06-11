@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Compass, Heart, Calendar, Star, Search, Share2, MapPin, Sparkles, 
-  ArrowRight, ShieldCheck, Eye, EyeOff, User, Mail, Lock, X, Check, HelpCircle
+  ArrowRight, ShieldCheck, Eye, EyeOff, User, Mail, Lock, X, Check, HelpCircle, AlertCircle
 } from 'lucide-react';
 import { Tab, TravelPackage, Destination, Reservation, Review } from './types';
 import { INITIAL_DESTINATIONS, INITIAL_PACKAGES, INITIAL_RESERVATIONS, INITIAL_REVIEWS } from './data';
@@ -12,9 +12,10 @@ import ReviewTab from './components/ReviewTab';
 import BookingWizard from './components/BookingWizard';
 import UMLSimulationPanel from './components/UMLSimulationPanel';
 import NearbySuggestions from './components/NearbySuggestions';
+import RefundDashboard from './components/RefundDashboard';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<Tab | 'detail' | 'checkout'>('inicio');
+  const [activeTab, setActiveTab] = useState<Tab | 'detail' | 'checkout' | 'reembolsos'>('inicio');
   
   // Data State
   const [destinations] = useState<Destination[]>(INITIAL_DESTINATIONS);
@@ -22,6 +23,8 @@ export default function App() {
   const [reservations, setReservations] = useState<Reservation[]>(INITIAL_RESERVATIONS);
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [favorites, setFavorites] = useState<string[]>(['dest-santorini']); // Default favorited item
+  const [selectedRefundReservation, setSelectedRefundReservation] = useState<Reservation | null>(null);
+  const [refundHistory, setRefundHistory] = useState<any[]>([]);
   
   // Selection/Interaction State
   const [selectedPackage, setSelectedPackage] = useState<TravelPackage | null>(null);
@@ -70,13 +73,21 @@ export default function App() {
 
   // Cancel dynamic trip bookings
   const cancelReservation = (id: string) => {
-    const confirmCancel = window.confirm('Tem certeza que deseja solicitar o cancelamento desta viagem de luxo curada?');
-    if (confirmCancel) {
-      setReservations(reservations.map(res => 
-        res.id === id ? { ...res, status: 'Cancelada' as 'Cancelada' } : res
-      ));
-      alert('Seu cancelamento foi solicitado e está sendo processado.');
+    const resObj = reservations.find(r => r.id === id);
+    if (resObj) {
+      setSelectedRefundReservation(resObj);
+      setActiveTab('reembolsos');
     }
+  };
+
+  const handleReservationStatusChange = (reservationId: string, newStatus: any) => {
+    setReservations(prev => prev.map(res => 
+      res.id === reservationId ? { ...res, status: newStatus } : res
+    ));
+  };
+
+  const handleAddNewHistoryToLog = (logItem: any) => {
+    setRefundHistory(prev => [logItem, ...prev]);
   };
 
   // Login handler
@@ -694,6 +705,143 @@ export default function App() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB EXCLUSIVA: CANCELAMENTO E REEMBOLSO (Image 5 & Business rules) */}
+        {activeTab === 'reembolsos' && (
+          <div className="space-y-8 text-left animate-fade-in max-w-5xl mx-auto">
+            {selectedRefundReservation ? (
+              <RefundDashboard 
+                reservation={selectedRefundReservation}
+                onBack={() => setSelectedRefundReservation(null)}
+                onStatusChange={handleReservationStatusChange}
+                onAddHistory={handleAddNewHistoryToLog}
+              />
+            ) : (
+              <div className="space-y-8">
+                {/* Header */}
+                <header className="border-b border-gray-100 pb-4 text-left">
+                  <h1 className="font-display font-black text-3xl text-[#00112f]">Portal de Cancelamento & Reembolso</h1>
+                  <p className="text-gray-500 text-xs text-left">Consulte políticas, envie requisições de estorno e acompanhe o andamento das análises operacionais.</p>
+                </header>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Left Column: List reservations to refund */}
+                  <div className="lg:col-span-7 space-y-6">
+                    <h2 className="font-display font-bold text-xs uppercase tracking-wider text-gray-400">Escolha uma viagem ativa para gerenciar</h2>
+                    
+                    {reservations.filter(r => r.status !== 'Cancelada').length === 0 ? (
+                      <div className="bg-white border border-gray-150 rounded-2xl p-8 text-center space-y-2">
+                        <p className="text-gray-400 text-xs">Você não possui viagens ativas para cancelamento ou reembolso neste momento.</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {reservations.filter(r => r.status !== 'Cancelada').map((res) => (
+                          <div 
+                            key={res.id} 
+                            className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 shadow-xs items-center"
+                          >
+                            <img src={res.image} alt={res.packageTitle} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                            <div className="flex-grow text-left space-y-1 min-w-0">
+                              <span className="text-[9px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-150">
+                                {res.id}
+                              </span>
+                              <h3 className="font-display font-bold text-sm text-[#00112f] truncate">{res.packageTitle}</h3>
+                              <p className="text-[11px] text-gray-500 font-medium">Pago: <strong>R$ {res.totalPaid.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></p>
+                            </div>
+                            <button
+                              onClick={() => setSelectedRefundReservation(res)}
+                              className="bg-red-50 hover:bg-red-100 text-red-650 text-[10px] uppercase tracking-wider font-bold p-2.5 rounded-xl border border-red-150 cursor-pointer shrink-0 transition-all active:scale-95"
+                              id={`manage-refund-${res.id}`}
+                            >
+                              Gerenciar estorno
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Request History Section based on Business Rule table and screenshot 1 */}
+                    <div className="space-y-4 pt-4 border-t border-gray-100">
+                      <h2 className="font-display font-bold text-xs uppercase tracking-wider text-gray-400">Histórico de Solicitações do Usuário</h2>
+                      
+                      {refundHistory.length === 0 ? (
+                        <div className="bg-gray-50 border border-gray-100/50 rounded-2xl p-6 text-center text-xs text-gray-400 leading-normal">
+                          Nenhuma solicitação de reembolso, cancelamento ou remarcação realizada em sua conta.
+                        </div>
+                      ) : (
+                        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-xs">
+                          <div className="overflow-x-auto">
+                            <table className="w-full text-left text-xs">
+                              <thead className="bg-[#0f264c] text-white font-display text-[11px] uppercase tracking-wider">
+                                <tr>
+                                  <th className="p-3">Protocolo</th>
+                                  <th className="p-3">Reserva</th>
+                                  <th className="p-3">Data</th>
+                                  <th className="p-3">Estorno Estimado</th>
+                                  <th className="p-3 text-right">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                                {refundHistory.map((hist, idx) => (
+                                  <tr key={idx} className="hover:bg-gray-50/50 transition-colors">
+                                    <td className="p-3 font-mono font-bold text-[#ff5a5f]">{hist.id}</td>
+                                    <td className="p-3 font-mono text-gray-400 text-[11px]">{hist.reservationId}</td>
+                                    <td className="p-3 text-[11px]">{hist.date}</td>
+                                    <td className="p-3 font-mono text-emerald-700">
+                                      {hist.refundAmount ? `R$ ${hist.refundAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${hist.refundPercent}%)` : 'Remarcação'}
+                                    </td>
+                                    <td className="p-3 text-right">
+                                      <span className="bg-amber-100 text-amber-800 border border-amber-200 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                                        {hist.status}
+                                      </span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right Column: Policies summary info card mapping layout 5 */}
+                  <div className="lg:col-span-5 bg-white border border-gray-100 rounded-3xl p-5 md:p-6 text-left space-y-5 shadow-sm">
+                    <h3 className="font-display font-black text-sm text-[#00112f] uppercase tracking-normal">Termo Oficial de Reembolsos</h3>
+                    
+                    <div className="space-y-4 text-xs">
+                      <div className="space-y-1">
+                        <p className="font-bold text-[#0f264c]">Como funciona a retenção?</p>
+                        <p className="text-gray-500 leading-relaxed text-[11px]">
+                          As companhias aéreas e provedores hoteleiros aplicam encargos escalonados dependendo do prazo remanescente para o embarque, conforme listagem na grade de antecedência.
+                        </p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <p className="font-bold text-[#0f264c]">Prazos e Devolução</p>
+                        <p className="text-gray-500 leading-relaxed text-[11px]">
+                          Após submetido, o protocolo entra em fila de análise de segurança financeira. O prazo máximo para estorno via PIX ou crédito em conta bancária de origem é de <strong>até 7 dias úteis</strong>.
+                        </p>
+                      </div>
+
+                      <hr className="border-gray-55" />
+                      
+                      <div className="bg-amber-50/70 border border-amber-100 p-3.5 rounded-2xl space-y-1.5 text-amber-900">
+                        <div className="flex gap-2 font-bold text-[11px] items-center">
+                          <AlertCircle className="w-4 h-4 text-amber-600" />
+                          <span>Observação de Taxas hoteleiras</span>
+                        </div>
+                        <p className="text-[10px] leading-normal text-amber-800">
+                          Impostos governamentais de aeroportos e taxas alfandegárias de turismo local de destinos do exterior possuem caráter não-reembolsável de acordo com as leis do país receptor.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

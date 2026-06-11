@@ -240,18 +240,18 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
 
 export const INITIAL_RESERVATIONS: Reservation[] = [
   {
-    id: 'VE-789012',
+    id: 'MDV-2026-78542',
     packageId: 'pkg-paris-romance',
     packageTitle: 'Escapada Romântica em Paris',
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBWVYM9fX2VtZFjic9vrjl-D9J3AjkMeh7_GK4UR16L8FMeud7a_QJ5b7pBJYS_nCg-pBpeHsV8ThR2qSycRRow8YHMugoMayzxvP5H9QyygiD82422pe0UtppTjA0dBD0Fy5YyW9P622I5_xAXTcps1LxS2nOeG5Cu7LwBYyCXDcvJybdIEJb0jNip8ifVClaSEW02WCjwCT8uDb5Xq5X5K0r5VdLo0Xas05ZZhtdLjuleiFMXmpUchA_FI9-yHzVDeoqOAoyD6QA',
-    startDate: '12 Nov 2024',
-    endDate: '18 Nov 2024',
+    startDate: '12 Nov 2026',
+    endDate: '18 Nov 2026',
     adultsCount: 2,
     childrenCount: 0,
     status: 'Confirmada',
     paymentMethod: 'À Vista',
     totalPaid: 25507.50,
-    daysToTrip: 15,
+    daysToTrip: 20,
     passengers: [
       {
         fullName: 'Carlos Eduardo Silva',

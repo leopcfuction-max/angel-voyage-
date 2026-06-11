@@ -13,10 +13,10 @@ export default function Footer({ onNav }: FooterProps) {
           {/* Brand/About */}
           <div className="col-span-1 space-y-4">
             <div className="flex items-center cursor-pointer group select-none" onClick={() => onNav('inicio')}>
-              <svg viewBox="0 0 200 60" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
+              <svg viewBox="0 0 240 60" className="h-10 w-auto" xmlns="http://www.w3.org/2000/svg">
                 <text x="10" y="45" fontFamily="Montserrat, sans-serif" fontWeight="800" fontSize="32" fill="#ffffff" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Angel</text>
                 <path d="M120 15 L140 45 L100 45 Z" fill="#ff6b6b" opacity="0.8" className="group-hover:translate-y-[-2px] transition-transform duration-300" />
-                <text x="125" y="45" fontFamily="Montserrat, sans-serif" fontWeight="300" fontSize="28" fill="#ffffff" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Voyage</text>
+                <text x="135" y="45" fontFamily="Montserrat, sans-serif" fontWeight="300" fontSize="28" fill="#ffffff" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Voyage</text>
               </svg>
             </div>
             <p className="text-xs text-gray-400 leading-relaxed max-w-xs">

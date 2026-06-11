@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Compass, Heart, Calendar, Star, Menu, X, LogIn, User, Database } from 'lucide-react';
+import { Compass, Heart, Calendar, Star, Menu, X, LogIn, User, Database, Undo2 } from 'lucide-react';
 import { Tab } from '../types';
 
 interface HeaderProps {
-  activeTab: Tab | 'detail' | 'checkout';
-  setActiveTab: (tab: Tab) => void;
+  activeTab: Tab | 'detail' | 'checkout' | 'reembolsos';
+  setActiveTab: (tab: any) => void;
   currentUser: any;
   onLogout: () => void;
 }
@@ -12,11 +12,12 @@ interface HeaderProps {
 export default function Header({ activeTab, setActiveTab, currentUser, onLogout }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
+  const navItems: { id: any; label: string; icon: React.ReactNode }[] = [
     { id: 'inicio', label: 'Início', icon: <Compass className="w-4 h-4" /> },
     { id: 'destinos', label: 'Destinos', icon: <Star className="w-4 h-4" /> },
     { id: 'pacotes', label: 'Pacotes', icon: <Calendar className="w-4 h-4" /> },
     { id: 'reservas', label: 'Reservas', icon: <Calendar className="w-4 h-4" /> },
+    { id: 'reembolsos', label: 'Reembolsos', icon: <Undo2 className="w-4 h-4" /> },
     { id: 'favoritos', label: 'Favoritos', icon: <Heart className="w-4 h-4" /> },
     { id: 'avaliacoes', label: 'Avaliações', icon: <Star className="w-4 h-4" /> },
     { id: 'sobre_nos', label: 'Sobre Nós', icon: <Compass className="w-4 h-4" /> },
@@ -31,10 +32,10 @@ export default function Header({ activeTab, setActiveTab, currentUser, onLogout 
           className="flex items-center cursor-pointer group select-none"
           id="brand-logo"
         >
-          <svg viewBox="0 0 200 60" className="h-12 w-auto animate-fade-in" xmlns="http://www.w3.org/2000/svg">
+          <svg viewBox="0 0 240 60" className="h-12 w-auto animate-fade-in" xmlns="http://www.w3.org/2000/svg">
             <text x="10" y="45" fontFamily="Montserrat, sans-serif" fontWeight="800" fontSize="32" fill="#0f264c" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Angel</text>
             <path d="M120 15 L140 45 L100 45 Z" fill="#ff6b6b" opacity="0.8" className="group-hover:translate-y-[-2px] transition-transform duration-300" />
-            <text x="125" y="45" fontFamily="Montserrat, sans-serif" fontWeight="300" fontSize="28" fill="#0f264c" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Voyage</text>
+            <text x="135" y="45" fontFamily="Montserrat, sans-serif" fontWeight="300" fontSize="28" fill="#0f264c" className="group-hover:fill-[#ff5a5f] transition-colors duration-300">Voyage</text>
           </svg>
         </div>
 
