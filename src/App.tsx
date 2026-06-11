@@ -11,6 +11,7 @@ import AboutUsTab from './components/AboutUsTab';
 import ReviewTab from './components/ReviewTab';
 import BookingWizard from './components/BookingWizard';
 import UMLSimulationPanel from './components/UMLSimulationPanel';
+import NearbySuggestions from './components/NearbySuggestions';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab | 'detail' | 'checkout'>('inicio');
@@ -204,6 +205,18 @@ export default function App() {
                 </button>
               ))}
             </section>
+
+            {/* Geolocation Nearby Suggestions section */}
+            <NearbySuggestions 
+              destinations={destinations}
+              packages={packages}
+              onSelectPackage={(pkg) => {
+                setSelectedPackage(pkg);
+                setActiveTab('detail');
+              }}
+              setActiveTab={setActiveTab}
+              setSelectedPackage={setSelectedPackage}
+            />
 
             {/* Top Destinos Bento Grid section */}
             <section className="space-y-6">

@@ -9,6 +9,8 @@ export interface Destination {
   description: string;
   bestSeason: string;
   rating: number;
+  lat?: number;
+  lng?: number;
 }
 
 export interface Accommodation {

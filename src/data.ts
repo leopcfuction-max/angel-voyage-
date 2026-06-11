@@ -9,7 +9,9 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBcxLmCxg6gksIOtNaqOk6Yh2vEIsmtHAtnx9baol1BkCg1BkMRKcEf-EIbjttTw_ocLwLPb8JzdMf01IpWFbnBK6Vnli8IcMFfaEhGf91WrSVwdGmTcVUrEcJWluVA4X4m5GRiL0g005fOyZN4x5aDAxmfMNrODGHMXn7bVJYrNSfxt6IscnmnNyL-eNxT1Fu-CsPjkj09eXyaNO6yNJmDqiWiDkICQpD3TBlyQmk1KcCfUUlkOxq0Xb7Kjv8x7xWGyP4o_zPz2Ho',
     description: 'Pôr do sol inesquecível, arquitetura icônica e praias de areia vulcânica em uma ilha deslumbrante no mar Egeu.',
     bestSeason: 'Mai - Out',
-    rating: 4.9
+    rating: 4.9,
+    lat: 36.412,
+    lng: 25.432
   },
   {
     id: 'dest-cairo',
@@ -19,7 +21,9 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCDMtYmJka_fDX64EZLl5oiIUr9OxcE_PZECEkFXv1_VoCubaqtDL_kFcX6S29y9LeJ2sXzn7XlRldzklDebD_DvPog8RNa45BCUEOV4ezQlIHF8wFX4BLXJ_Av0vzieR6sKf3wSDh9ktl71B9Buf-EFA-WXy_V4pLm7xnnLontnQFgnwsjBh-SOZZizVjtlVHH2RWO4S4uD-NjpR-kFRjMd5e-A9HEs1lVA05uNvVBSxg09BzmOuU_43n6VEee5388uAerXTayvk4',
     description: 'Explore os mistérios dos faraós, as Grandes Pirâmides e navegue pelas águas históricas do rio Nilo com total exclusividade.',
     bestSeason: 'Out - Abr',
-    rating: 4.8
+    rating: 4.8,
+    lat: 30.044,
+    lng: 31.235
   },
   {
     id: 'dest-zermatt',
@@ -29,7 +33,9 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC8QNNGb3O2zSJcWhP649biUy-gGwRKV497nZSyhYi-pUBDoIm7Z62j4Qb6qo2-60U_YIlcW7NlkdF5KrHN648wSEQIcHPZuWUddI81kwejrRdx3rNhRL0A_KCRZge8xj9_TpbSz1VWVKJvD64bIVL9K-uhuFiC87KLTrQq9QnU5il4Hv37n08NNNTQITd3jclsg2MCcbyLIBdGYJAtltOD9MxKd_GnAGdUo5CCuPSbnSKqDR-S5ebRtolN0Wd_DyHHpkLZHfuxW7A',
     description: 'Elegância nos Alpes, resorts de esqui de classe mundial e vistas panorâmicas do majestoso Matterhorn.',
     bestSeason: 'Dez - Mar',
-    rating: 4.5
+    rating: 4.5,
+    lat: 46.02,
+    lng: 7.749
   },
   {
     id: 'dest-noronha',
@@ -39,7 +45,33 @@ export const INITIAL_DESTINATIONS: Destination[] = [
     image: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCAWf3Bb-eOWOU206RqsUxC3E1Su2NZhErJOyeGlPP6oNvKgJnkAmKZBfDIcad_N3QMjPQRdnz36KxRDQHEkwNRqFs1isbVf-uhzVigVzyBVFvGcqo0nMRUon8lirfGq3KqAibIf97smddCbJd54ZzHQVcKSppr9u14FY6GPyWULz-GKQGJvlATjLdMWI0fGDWTlJtdQxz_bGjXSRD2b2PRPsY5dH1nmiHFctgZpNWbyVCQvtxgtW6HLRLf52qK_cLpIu2eXAdda_Y',
     description: 'Santuário ecológico intocado com as praias mais belas do mundo, ideal para mergulho e imersão na natureza.',
     bestSeason: 'Ago - Dez',
-    rating: 4.7
+    rating: 4.7,
+    lat: -3.854,
+    lng: -32.426
+  },
+  {
+    id: 'dest-angra',
+    name: 'Angra dos Reis',
+    country: 'Brasil',
+    price: 1950,
+    image: 'https://images.unsplash.com/photo-1590523277543-a94d2e4eb00b?w=800&auto=format&fit=crop&q=80',
+    description: 'Águas verde-esmeralda, ilhas exclusivas de areia branca e iates luxuosos no litoral sul fluminense.',
+    bestSeason: 'Dez - Mar',
+    rating: 4.8,
+    lat: -23.001,
+    lng: -44.318
+  },
+  {
+    id: 'dest-bora-bora',
+    name: 'Bora Bora',
+    country: 'Polinésia Francesa',
+    price: 5200,
+    image: 'https://images.unsplash.com/photo-1505881502353-a1986add3762?w=800&auto=format&fit=crop&q=80',
+    description: 'Bangalôs sobre a água nas lagoas mais turquesas do mundo sob picos icônicos tropicais.',
+    bestSeason: 'Mai - Out',
+    rating: 4.9,
+    lat: -16.5,
+    lng: -151.741
   }
 ];
 
