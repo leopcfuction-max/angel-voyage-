@@ -58,6 +58,12 @@ export interface Passenger {
   birthDate: string;
   nationality: string;
   gender: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
 }
 
 export interface Reservation {
