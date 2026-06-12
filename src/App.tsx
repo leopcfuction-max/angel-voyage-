@@ -150,51 +150,111 @@ export default function App() {
         {/* TAB 1: INÍCIO (LANDING FEED) */}
         {activeTab === 'inicio' && (
           <div className="space-y-16 animate-fade-in">
-            {/* Elegant Editorial Hero Banner with embedded search */}
-            <section className="relative rounded-2xl overflow-hidden h-[450px] flex items-center justify-center p-6 bg-[#00112f]">
+            {/* Elegant Editorial Hero Banner with embedded search matching the user's uploaded image style */}
+            <section className="relative rounded-[32px] overflow-hidden min-h-[580px] lg:min-h-[640px] flex items-center justify-center p-6 md:p-12 bg-[#121821]">
               <div className="absolute inset-0 z-0">
-                <img 
-                  className="w-full h-full object-cover object-center opacity-65 scale-105 transition-all duration-1000" 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_EtYtDHGcIdOpZrTJe6NqaLjmqVvzXGJtqKG8mcUD9-uAPR67n_44JptrV1UGK3FrXHphlXG-7iX1_94zWTZ0N95raSqtp6mku6CChzH-FcWKYurJV_UoAJYw2zJ1RGYhkjJaf-7-NWFplvA3nzY5ady358cHyUu9NZxJJ1XSjPF3nhxwJgRzcntjh0VIi2vGRnuspmGpYd14_aqZDZFfw3C_3qahy0ybLtsaoGVGUeSgVK6Px1DUZddKlHHMAYD4P8tYQxCzwQg" 
-                  alt="Scenic pristine Maldives overwater resort" 
+                <video 
+                  className="w-full h-full object-cover object-center opacity-70 transition-all duration-1000" 
+                  src="https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260328_091828_e240eb17-6edc-4129-ad9d-98678e3fd238.mp4" 
+                  autoPlay 
+                  muted 
+                  loop 
+                  playsInline
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#00112f]/80 via-transparent to-[#00112f]/30"></div>
+                <div className="absolute inset-0 bg-black/35"></div>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#121821]/90 via-transparent to-[#121821]/45"></div>
               </div>
 
               {/* Central Text Panel */}
-              <div className="relative z-10 w-full max-w-2xl text-center space-y-6">
-                <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  <span className="text-[11px] font-bold text-white uppercase tracking-wider">Curadoria Select 2026</span>
+              <div className="relative z-10 w-full max-w-4xl text-center space-y-8 py-8 md:py-12">
+                <div className="space-y-1">
+                  <span className="text-[11px] font-bold text-[#ff5a5f] uppercase tracking-[0.25em] block">
+                    Viagens Exclusivas
+                  </span>
+                  
+                  {/* Overlapping Luxurious Typography */}
+                  <div className="flex flex-col items-center justify-center select-none leading-none pt-2">
+                    <h1 className="font-display font-black italic text-6xl sm:text-8xl md:text-9xl lg:text-[130px] text-white tracking-tighter leading-none">
+                      Premium.
+                    </h1>
+                    <h1 className="font-display font-black italic text-6xl sm:text-8xl md:text-9xl lg:text-[130px] text-[#0a1c3e] tracking-tighter leading-none -mt-4 sm:-mt-6 md:-mt-10 lg:-mt-12 opacity-95">
+                      Acessível.
+                    </h1>
+                  </div>
                 </div>
-                
-                <h1 className="font-display font-black text-3xl sm:text-4xl md:text-5xl text-white tracking-tight leading-none uppercase">
-                  Desenhe sua próxima <span className="text-[#ff5a5f]">Jornada Singular</span>
-                </h1>
-                
-                <p className="text-gray-200 text-xs sm:text-sm max-w-lg mx-auto leading-relaxed">
-                  Refúgios de excelência intocados e hospitalidade impecavelmente orquestrada pelas principais companhias de turismo do mundo.
+
+                <p className="text-white text-xs sm:text-sm md:text-base max-w-xl mx-auto leading-relaxed font-medium">
+                  Sua dedicação merece o melhor destino.
                 </p>
 
-                {/* Micro Input Search Wrapper */}
-                <div className="bg-white p-2 rounded-2xl shadow-xl max-w-lg mx-auto flex items-center gap-1.5 border border-gray-100">
-                  <span className="p-2.5 text-gray-400">
-                    <Search className="w-4 h-4" />
-                  </span>
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Procure por ilhas, resorts, hotéis..."
-                    className="flex-grow bg-transparent text-xs text-gray-800 font-medium focus:outline-none placeholder-gray-400"
-                    id="hero-search-input"
-                  />
+                {/* CTA Buttons row */}
+                <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
                   <button 
-                    onClick={() => setActiveTab('pacotes')}
-                    className="bg-[#0f264c] hover:bg-[#00112f] text-white text-[11px] font-bold tracking-wide uppercase px-4 py-2.5 rounded-xl transition-all shadow"
+                    onClick={() => setActiveTab('destinos')} 
+                    className="px-8 py-3 rounded-full border border-white text-white text-xs font-bold tracking-wider uppercase bg-transparent hover:bg-white/10 active:scale-95 transition-all cursor-pointer"
+                    id="hero-cta-discover"
                   >
-                    Buscar
+                    Descobrir
                   </button>
+                  <button 
+                    onClick={() => setActiveTab('pacotes')} 
+                    className="px-8 py-3 rounded-full bg-[#0f264c] hover:bg-[#00112f] text-white text-xs font-bold tracking-wider uppercase active:scale-95 transition-all cursor-pointer shadow-lg"
+                    id="hero-cta-book"
+                  >
+                    Reservar Agora
+                  </button>
+                </div>
+
+                {/* Pill Search Engine Layout matching image */}
+                <div className="bg-white/95 backdrop-blur-md rounded-3xl md:rounded-full shadow-2xl max-w-3xl w-full mx-auto p-1.5 flex flex-col md:flex-row items-center divide-y md:divide-y-0 md:divide-x divide-gray-200/80 border border-white/20 mt-8">
+                  {/* Destination column */}
+                  <div className="flex-1 w-full flex items-center gap-3 px-5 py-4 text-left min-w-0">
+                    <MapPin className="w-5 h-5 text-gray-500 shrink-0" />
+                    <div className="flex-grow min-w-0">
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Para onde você quer"
+                        className="w-full bg-transparent text-xs text-gray-800 font-bold focus:outline-none placeholder-gray-500 truncate"
+                        id="hero-pill-destination-input"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Dates column */}
+                  <div 
+                    onClick={() => setActiveTab('pacotes')}
+                    className="flex-1 w-full flex items-center gap-3 px-5 py-4 text-left cursor-pointer hover:bg-black/5 transition-all rounded-none"
+                  >
+                    <Calendar className="w-5 h-5 text-gray-500 shrink-0" />
+                    <div className="flex-grow min-w-0">
+                      <span className="block text-xs text-gray-700 font-bold truncate">Datas de viagem</span>
+                    </div>
+                  </div>
+
+                  {/* Guests column & Search action pin */}
+                  <div 
+                    onClick={() => setActiveTab('pacotes')}
+                    className="flex-1 w-full flex items-center gap-3 pl-5 pr-2 py-3 text-left cursor-pointer hover:bg-black/5 transition-all rounded-b-3xl md:rounded-b-none md:rounded-r-full"
+                  >
+                    <User className="w-5 h-5 text-gray-500 shrink-0" />
+                    <div className="flex-grow min-w-0 mr-2">
+                      <span className="block text-xs text-gray-700 font-bold truncate">Hóspedes</span>
+                    </div>
+                    
+                    {/* Pink Magnifier Button */}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveTab('pacotes');
+                      }}
+                      className="bg-[#ff5a5f] hover:bg-[#e04f53] text-white p-3 rounded-full transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center shrink-0 ml-auto"
+                      id="hero-pill-search-action"
+                    >
+                      <Search className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </section>
