@@ -257,23 +257,6 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     description: 'Viva a magia total! Acesso integral com ingressos para Magic Kingdom, EPCOT, Hollywood Studios e Animal Kingdom com os benefícios mágicos de se hospedar dentro do complexo da Disney.'
   },
   {
-    id: 'pkg-orlando-disney-premium',
-    title: 'Disney Premium Orlando',
-    destination: 'Orlando',
-    country: 'Estados Unidos',
-    hotel: "Disney's Grand Floridian Resort & Spa",
-    stars: 5,
-    flight: 'American Airlines (Classe Executiva)',
-    durationDays: 10,
-    durationNights: 9,
-    originalPrice: 28900,
-    currentPrice: 25200,
-    image: 'blob:https://gemini.google.com/13d8b4fe-70c6-4a56-a8c6-bbde5f70c9f9',
-    rating: 5.0,
-    reviewsCount: 92,
-    description: 'Hospedagem luxuosa no hotel de maior prestígio e elegância vitoriana da Disney. Inclui transporte integral exclusivo de monotrilho e experiência premium fura-filas ligada aos parques.'
-  },
-  {
     id: 'pkg-orlando-disney-universal',
     title: 'Disney + Universal Studios',
     destination: 'Orlando',
@@ -438,7 +421,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 9,
     originalPrice: 28900,
     currentPrice: 25900,
-    image: 'https://chatgpt.com/backend-api/estuary/content?id=file_00000000d2c871f59c69341c7490ef88&ts=494949&p=fs&cid=1&sig=aca02ebcc9c348866d651743a8d355be7b5719cbb92f1046a3467baa3a65127f&v=0',
+    image: '/src/assets/images/londres_paris_banner_1781826847982.jpg',
     rating: 4.9,
     reviewsCount: 154,
     description: 'Cruze o canal da mancha a bordo do trem bala Eurostar de primeira classe unindo duas metrópoles espetaculares de palácios, mimos reais e estilo insuperável.'
@@ -591,7 +574,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 4,
     originalPrice: 8500,
     currentPrice: 7600,
-    image: 'https://chatgpt.com/s/m_6a3468f0b04c819190b30ea6d3f41989',
+    image: '/src/assets/images/rio_premium_1781825350412.jpg',
     rating: 4.9,
     reviewsCount: 198,
     description: 'Sinta o luxo icônico e refinamento na Praia de Copacabana. Desfrute de mimos de primeira no Copa e traslado VIP com fura-filas para o belo Cristo Redentor.'
@@ -659,7 +642,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 7,
     originalPrice: 18900,
     currentPrice: 16800,
-    image: 'https://chatgpt.com/s/m_6a3469aa8a148191bf4341160c3ca8ef',
+    image: '/src/assets/images/barcelona_madrid_1781825362251.jpg',
     rating: 4.8,
     reviewsCount: 163,
     description: 'Embeleze-se com a arquitetura magnífica de Gaudí e a elite comercial do Palácio Real espanhol. Inclui visitas preferenciais ao Parque Güell e Museu do Prado.'
