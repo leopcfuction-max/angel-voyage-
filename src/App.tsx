@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Compass, Heart, Calendar, Star, Search, Share2, MapPin, Sparkles, 
-  ArrowRight, ShieldCheck, Eye, EyeOff, User, Mail, Lock, X, Check, HelpCircle, AlertCircle
+  ArrowRight, ShieldCheck, Eye, EyeOff, User, Mail, Lock, X, Check, HelpCircle, AlertCircle, Loader2
 } from 'lucide-react';
+import { supabase } from './lib/supabaseClient';
 import { Tab, TravelPackage, Destination, Reservation, Review } from './types';
 import { INITIAL_DESTINATIONS, INITIAL_PACKAGES, INITIAL_RESERVATIONS, INITIAL_REVIEWS } from './data';
 import Header from './components/Header';
@@ -13,6 +14,20 @@ import BookingWizard from './components/BookingWizard';
 import UMLSimulationPanel from './components/UMLSimulationPanel';
 import NearbySuggestions from './components/NearbySuggestions';
 import RefundDashboard from './components/RefundDashboard';
+
+// Traduz mensagens de erro comuns do Supabase Auth para PT-BR
+function traduzirErroAuth(message?: string): string {
+  if (!message) return 'Ocorreu um erro. Tente novamente.';
+  const m = message.toLowerCase();
+  if (m.includes('invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (m.includes('email not confirmed')) return 'Confirme seu e-mail antes de entrar.';
+  if (m.includes('user already registered')) return 'Este e-mail já possui cadastro.';
+  if (m.includes('password should be at least')) return 'A senha deve ter pelo menos 6 caracteres.';
+  if (m.includes('unable to validate email')) return 'E-mail inválido.';
+  if (m.includes('rate limit') || m.includes('too many')) return 'Muitas tentativas. Aguarde alguns minutos.';
+  if (m.includes('same password')) return 'A nova senha deve ser diferente da anterior.';
+  return message;
+}
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab | 'detail' | 'checkout' | 'reembolsos'>('inicio');
@@ -32,17 +47,55 @@ export default function App() {
   const [selectedCountryFilter, setSelectedCountryFilter] = useState<string>('Todos');
 
   // Custom User Session
-  const [currentUser, setCurrentUser] = useState<any>({
-    name: 'Carlos Eduardo Silva',
-    email: 'carlos.eduardo@voyageelite.com'
-  });
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
   // Login Form States
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [loginName, setLoginName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
+
+  // Auth flow states (Supabase): 'login' | 'register' | 'forgot' | 'reset'
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot' | 'reset'>('login');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [authMessage, setAuthMessage] = useState<string | null>(null);
+  const [resetPassword, setResetPassword] = useState('');
+
+  // Initialize session and listen for auth state changes (incl. password recovery)
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const u = session.user;
+        setCurrentUser({
+          name: (u.user_metadata?.full_name as string) || u.email?.split('@')[0] || 'Membro',
+          email: u.email,
+        });
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        // User arrived via the password reset email link
+        setAuthMode('reset');
+        setActiveTab('login');
+        setAuthError(null);
+        setAuthMessage('Defina sua nova senha abaixo.');
+        return;
+      }
+      if (session?.user) {
+        const u = session.user;
+        setCurrentUser({
+          name: (u.user_metadata?.full_name as string) || u.email?.split('@')[0] || 'Membro',
+          email: u.email,
+        });
+      } else if (event === 'SIGNED_OUT') {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Toggle favorite helper
   const toggleFavorite = (id: string, e?: React.MouseEvent) => {
@@ -90,24 +143,93 @@ export default function App() {
     setRefundHistory(prev => [logItem, ...prev]);
   };
 
-  // Login handler
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isRegisterMode) {
-      if (!loginName || !loginEmail || !loginPassword) return;
-      setCurrentUser({ name: loginName, email: loginEmail });
-    } else {
-      if (!loginEmail || !loginPassword) return;
-      setCurrentUser({ name: loginEmail.split('@')[0], email: loginEmail });
-    }
-    setActiveTab('inicio');
-    // reset form fields
-    setLoginEmail('');
-    setLoginPassword('');
-    setLoginName('');
+  const resetAuthFeedback = () => {
+    setAuthError(null);
+    setAuthMessage(null);
   };
 
-  const handleLogout = () => {
+  // Login / Register handler (Supabase Auth)
+  const handleLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    resetAuthFeedback();
+    setAuthLoading(true);
+    try {
+      if (authMode === 'register') {
+        if (!loginName || !loginEmail || !loginPassword) return;
+        const { error } = await supabase.auth.signUp({
+          email: loginEmail,
+          password: loginPassword,
+          options: { data: { full_name: loginName } },
+        });
+        if (error) throw error;
+        setAuthMessage('Cadastro realizado! Verifique seu e-mail para confirmar a conta, se necessário.');
+        setLoginPassword('');
+      } else {
+        if (!loginEmail || !loginPassword) return;
+        const { error } = await supabase.auth.signInWithPassword({
+          email: loginEmail,
+          password: loginPassword,
+        });
+        if (error) throw error;
+        setActiveTab('inicio');
+        setLoginEmail('');
+        setLoginPassword('');
+        setLoginName('');
+      }
+    } catch (err: any) {
+      setAuthError(traduzirErroAuth(err?.message));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Forgot password handler — sends reset email
+  const handleForgotSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    resetAuthFeedback();
+    if (!loginEmail) {
+      setAuthError('Informe o e-mail cadastrado.');
+      return;
+    }
+    setAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(loginEmail, {
+        redirectTo: window.location.origin,
+      });
+      if (error) throw error;
+      setAuthMessage('Enviamos um link de redefinição para o seu e-mail. Verifique sua caixa de entrada e o spam.');
+    } catch (err: any) {
+      setAuthError(traduzirErroAuth(err?.message));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  // Reset password handler — sets new password after clicking email link
+  const handleResetSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    resetAuthFeedback();
+    if (resetPassword.length < 6) {
+      setAuthError('A nova senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    setAuthLoading(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: resetPassword });
+      if (error) throw error;
+      setAuthMessage('Senha atualizada com sucesso! Você já está conectado.');
+      setResetPassword('');
+      setAuthMode('login');
+      setActiveTab('inicio');
+    } catch (err: any) {
+      setAuthError(traduzirErroAuth(err?.message));
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     setActiveTab('inicio');
   };
@@ -932,105 +1054,203 @@ export default function App() {
           />
         )}
 
-        {/* TAB 8: LOGIN/REGISTER client panel */}
+        {/* TAB 8: LOGIN / REGISTER / FORGOT / RESET client panel */}
         {activeTab === 'login' && (
           <div className="max-w-md mx-auto font-sans text-left my-10 animate-fade-in">
             <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-[0_12px_50px_rgba(15,38,76,0.06)] relative overflow-hidden">
               <div className="absolute top-0 left-0 w-32 h-32 bg-[#ff5a5f]/5 rounded-full blur-2xl pointer-events-none -translate-x-1/2 -translate-y-1/2"></div>
-              
+
               <div className="relative z-10 text-center space-y-6">
                 <div>
                   <h1 className="font-display font-extrabold text-2xl text-[#00112f] mb-1">
-                    {isRegisterMode ? 'Crie sua Conta Elite' : 'Acesse seu Portal Concierge'}
+                    {authMode === 'register' && 'Crie sua Conta Elite'}
+                    {authMode === 'login' && 'Acesse seu Portal Concierge'}
+                    {authMode === 'forgot' && 'Recuperar Senha'}
+                    {authMode === 'reset' && 'Definir Nova Senha'}
                   </h1>
                   <p className="text-gray-400 text-xs max-w-xs mx-auto">
-                    {isRegisterMode ? 'Faça parte do clube de viajantes de alto padrão.' : 'Gerencie reservas na classe executiva e consulte seus transfers.'}
+                    {authMode === 'register' && 'Faça parte do clube de viajantes de alto padrão.'}
+                    {authMode === 'login' && 'Gerencie reservas na classe executiva e consulte seus transfers.'}
+                    {authMode === 'forgot' && 'Informe seu e-mail e enviaremos um link para redefinir sua senha.'}
+                    {authMode === 'reset' && 'Escolha uma nova senha de acesso para sua conta.'}
                   </p>
                 </div>
 
-                <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
-                  {isRegisterMode && (
+                {/* Feedback messages */}
+                {authError && (
+                  <div className="flex items-start gap-2 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl px-3 py-2.5 text-xs text-left">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{authError}</span>
+                  </div>
+                )}
+                {authMessage && (
+                  <div className="flex items-start gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-3 py-2.5 text-xs text-left">
+                    <Check className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{authMessage}</span>
+                  </div>
+                )}
+
+                {/* FORGOT PASSWORD FORM */}
+                {authMode === 'forgot' && (
+                  <form onSubmit={handleForgotSubmit} className="space-y-4 text-left">
                     <div>
-                      <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nome Completo</label>
+                      <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">E-mail cadastrado</label>
                       <div className="relative">
-                        <User className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                        <Mail className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
                         <input
-                          type="text"
+                          type="email"
                           required
-                          className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
-                          placeholder="Ex: Carlos Mendes"
-                          value={loginName}
-                          onChange={(e) => setLoginName(e.target.value)}
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
+                          placeholder="nome@email.net"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
                         />
                       </div>
                     </div>
-                  )}
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full bg-[#ff5a5f] hover:bg-rose-600 disabled:opacity-60 text-white font-sans text-xs font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      {authLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Enviar link de redefinição
+                    </button>
+                  </form>
+                )}
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">E-mail de Cadastro</label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-                      <input
-                        type="email"
-                        required
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
-                        placeholder="nome@email.net"
-                        value={loginEmail}
-                        onChange={(e) => setLoginEmail(e.target.value)}
-                      />
+                {/* RESET PASSWORD FORM */}
+                {authMode === 'reset' && (
+                  <form onSubmit={handleResetSubmit} className="space-y-4 text-left">
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nova senha</label>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
+                          placeholder="Mínimo de 6 caracteres"
+                          value={resetPassword}
+                          onChange={(e) => setResetPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full bg-[#ff5a5f] hover:bg-rose-600 disabled:opacity-60 text-white font-sans text-xs font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      {authLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      Salvar nova senha
+                    </button>
+                  </form>
+                )}
 
-                  <div>
-                    <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Sua Senha</label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
-                      <input
-                        type={showPassword ? 'text' : 'password'}
-                        required
-                        className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
-                        placeholder="Insira sua senha segura"
-                        value={loginPassword}
-                        onChange={(e) => setLoginPassword(e.target.value)}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                {/* LOGIN / REGISTER FORM */}
+                {(authMode === 'login' || authMode === 'register') && (
+                  <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+                    {authMode === 'register' && (
+                      <div>
+                        <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">Nome Completo</label>
+                        <div className="relative">
+                          <User className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                          <input
+                            type="text"
+                            required
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
+                            placeholder="Ex: Carlos Mendes"
+                            value={loginName}
+                            onChange={(e) => setLoginName(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    <div>
+                      <label className="block text-[11px] font-bold text-gray-700 uppercase mb-1">{authMode === 'register' ? 'E-mail de Cadastro' : 'E-mail de Acesso'}</label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                        <input
+                          type="email"
+                          required
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
+                          placeholder="nome@email.net"
+                          value={loginEmail}
+                          onChange={(e) => setLoginEmail(e.target.value)}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <button
-                    type="submit"
-                    className="w-full bg-[#ff5a5f] hover:bg-rose-600 text-white font-sans text-xs font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all uppercase tracking-wider"
-                  >
-                    {isRegisterMode ? 'Finalizar Cadastro' : 'Entrar no Concierge'}
-                  </button>
-                </form>
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-[11px] font-bold text-gray-700 uppercase">Sua Senha</label>
+                        {authMode === 'login' && (
+                          <button
+                            type="button"
+                            onClick={() => { setAuthMode('forgot'); resetAuthFeedback(); }}
+                            className="text-[11px] text-[#ff5a5f] font-bold hover:underline"
+                          >
+                            Esqueci minha senha
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-2.5 text-gray-400 w-4 h-4" />
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          required
+                          className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-10 pr-10 py-2.5 text-xs text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#ff5a5f]"
+                          placeholder="Insira sua senha segura"
+                          value={loginPassword}
+                          onChange={(e) => setLoginPassword(e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={authLoading}
+                      className="w-full bg-[#ff5a5f] hover:bg-rose-600 disabled:opacity-60 text-white font-sans text-xs font-semibold py-3 rounded-xl shadow-md hover:shadow-lg transition-all uppercase tracking-wider flex items-center justify-center gap-2"
+                    >
+                      {authLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                      {authMode === 'register' ? 'Finalizar Cadastro' : 'Entrar no Concierge'}
+                    </button>
+                  </form>
+                )}
 
                 <div className="space-y-4 pt-4 border-t border-gray-100 text-xs">
-                  <p className="text-gray-500">
-                    {isRegisterMode ? 'Já possui login cadastrado?' : 'Ainda não é um Membro Elite?'}
+                  {(authMode === 'forgot' || authMode === 'reset') ? (
                     <button
-                      onClick={() => setIsRegisterMode(!isRegisterMode)}
-                      className="text-[#ff5a5f] font-bold ml-1 hover:underline"
+                      onClick={() => { setAuthMode('login'); resetAuthFeedback(); }}
+                      className="text-[#ff5a5f] font-bold hover:underline"
                     >
-                      {isRegisterMode ? 'Faça login' : 'Cadastre-se grátis'}
+                      ← Voltar para o login
                     </button>
-                  </p>
-
-                  <button
-                    onClick={() => {
-                      setCurrentUser({ name: 'Visitante VIP', email: 'guest@voyage.com' });
-                      setActiveTab('inicio');
-                    }}
-                    className="text-[11px] text-[#0f264c] font-semibold hover:underline"
-                  >
-                    Acessar temporariamente como Convidado (Guest)
-                  </button>
+                  ) : (
+                    <p className="text-gray-500">
+                      {authMode === 'register' ? 'Já possui login cadastrado?' : 'Ainda não é um Membro Elite?'}
+                      <button
+                        onClick={() => { setAuthMode(authMode === 'register' ? 'login' : 'register'); resetAuthFeedback(); }}
+                        className="text-[#ff5a5f] font-bold ml-1 hover:underline"
+                      >
+                        {authMode === 'register' ? 'Faça login' : 'Cadastre-se grátis'}
+                      </button>
+                    </p>
+                  )}
                 </div>
 
               </div>
