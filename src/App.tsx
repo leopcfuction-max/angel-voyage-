@@ -327,6 +327,7 @@ export default function App() {
                         src={dest.image} 
                         alt={dest.name} 
                         className="w-full h-full object-cover group-hover:scale-105 duration-700 transition" 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
 
@@ -386,6 +387,7 @@ export default function App() {
                           src={pkg.image} 
                           alt={pkg.title} 
                           className="w-full h-full object-cover" 
+                          onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
 
@@ -489,7 +491,12 @@ export default function App() {
                     className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-lg transition-all duration-300"
                   >
                     <div className="relative h-60">
-                      <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
+                      <img 
+                        src={dest.image} 
+                        alt={dest.name} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
+                      />
                       <button
                         onClick={(e) => toggleFavorite(dest.id, e)}
                         className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-white hover:text-red-500 hover:bg-white transition-all scale-95"
@@ -554,7 +561,12 @@ export default function App() {
                   className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between"
                 >
                   <div className="relative h-52">
-                    <img src={pkg.image} alt={pkg.title} className="w-full h-full object-cover" />
+                    <img 
+                      src={pkg.image} 
+                      alt={pkg.title} 
+                      className="w-full h-full object-cover" 
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
+                    />
                     {pkg.isPromo && (
                       <span className="absolute top-4 left-4 bg-red-500 text-white font-display text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full">
                         {pkg.promoLabel}
@@ -645,6 +657,7 @@ export default function App() {
                       src={res.image} 
                       alt={res.packageTitle} 
                       className="w-full md:w-32 h-32 rounded-xl object-cover shrink-0" 
+                      onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
                     />
 
                     <div className="flex-grow space-y-2 text-left w-full">
@@ -747,7 +760,12 @@ export default function App() {
                     className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow"
                   >
                     <div className="relative h-56">
-                      <img src={dest.image} alt={dest.name} className="w-full h-full object-cover" />
+                      <img 
+                        src={dest.image} 
+                        alt={dest.name} 
+                        className="w-full h-full object-cover" 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
+                      />
                       <button
                         onClick={(e) => toggleFavorite(dest.id, e)}
                         className="absolute top-4 right-4 p-2 bg-white/20 backdrop-blur-md rounded-full text-[#ff5a5f] hover:text-gray-300 transition-all cursor-pointer"
@@ -804,7 +822,12 @@ export default function App() {
                             key={res.id} 
                             className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 shadow-xs items-center"
                           >
-                            <img src={res.image} alt={res.packageTitle} className="w-20 h-20 rounded-lg object-cover shrink-0" />
+                            <img 
+                              src={res.image} 
+                              alt={res.packageTitle} 
+                              className="w-20 h-20 rounded-lg object-cover shrink-0" 
+                              onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
+                            />
                             <div className="flex-grow text-left space-y-1 min-w-0">
                               <span className="text-[9px] font-mono font-bold text-gray-400 bg-gray-50 px-2 py-0.5 rounded border border-gray-150">
                                 {res.id}
@@ -1057,7 +1080,12 @@ export default function App() {
             {/* Editorial Header Panel */}
             <header className="relative rounded-3xl overflow-hidden h-96 flex items-end p-6 md:p-10 text-white shadow-md">
               <div className="absolute inset-0 z-0">
-                <img src={selectedPackage.image} alt={selectedPackage.title} className="w-full h-full object-cover" />
+                <img 
+                  src={selectedPackage.image} 
+                  alt={selectedPackage.title} 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent"></div>
               </div>
 
@@ -1092,6 +1120,7 @@ export default function App() {
                         src={selectedPackage.accommodation.image} 
                         alt={selectedPackage.accommodation.name} 
                         className="md:col-span-4 w-full h-36 rounded-xl object-cover" 
+                        onError={(e) => { e.currentTarget.onerror = null; e.currentTarget.src = "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800&auto=format&fit=crop&q=80"; }}
                       />
 
                       <div className="md:col-span-8 space-y-2">

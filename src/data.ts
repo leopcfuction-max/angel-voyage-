@@ -251,7 +251,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     currentPrice: 11200,
     isPromo: true,
     promoLabel: 'MAIS PROCURADO',
-    image: 'https://images.unsplash.com/photo-1597466765990-64ad1c35dafc?w=800&auto=format&fit=crop&q=80',
+    image: 'https://lh3.googleusercontent.com/gg-dl/AFfU-fI9-ruULVP45K9bdZV0y6mbo6wug4u5ZDK62HlphBNRV6y469aYdMF7hKp1XOFQwHgSHXcQReXn7vQiGOD9KLHgPo3L-4RngX1BQ4zTCqCliGUb9U1t6zJnQcvIWDB9RZ5sM8YDM0m_0MTG722BJOARsgTwtqtD29etcwW6Ei53xcvqvg=s1600-rj',
     rating: 4.8,
     reviewsCount: 165,
     description: 'Viva a magia total! Acesso integral com ingressos para Magic Kingdom, EPCOT, Hollywood Studios e Animal Kingdom com os benefícios mágicos de se hospedar dentro do complexo da Disney.'
@@ -268,7 +268,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 9,
     originalPrice: 28900,
     currentPrice: 25200,
-    image: 'https://images.unsplash.com/photo-1545231027-63b3f1600758?w=800&auto=format&fit=crop&q=80',
+    image: 'blob:https://gemini.google.com/13d8b4fe-70c6-4a56-a8c6-bbde5f70c9f9',
     rating: 5.0,
     reviewsCount: 92,
     description: 'Hospedagem luxuosa no hotel de maior prestígio e elegância vitoriana da Disney. Inclui transporte integral exclusivo de monotrilho e experiência premium fura-filas ligada aos parques.'
@@ -421,8 +421,8 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 6,
     originalPrice: 18200,
     currentPrice: 16500,
-    image: 'https://images.unsplash.com/photo-1513635269975-59663e0ca1ad?w=800&auto=format&fit=crop&q=80',
     rating: 4.8,
+    image: 'data:image/jpeg;base64,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',
     reviewsCount: 131,
     description: 'Vibrante herança imperial. Tenha tours particulares guiados pelo British Museum, a Torre de Londres, a tradicional London Eye e o lendário chá das cinco do Savoy.'
   },
@@ -438,7 +438,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 9,
     originalPrice: 28900,
     currentPrice: 25900,
-    image: 'https://images.unsplash.com/photo-1522083165195-3427ee0294abd?w=800&auto=format&fit=crop&q=80',
+    image: 'https://chatgpt.com/backend-api/estuary/content?id=file_00000000d2c871f59c69341c7490ef88&ts=494949&p=fs&cid=1&sig=aca02ebcc9c348866d651743a8d355be7b5719cbb92f1046a3467baa3a65127f&v=0',
     rating: 4.9,
     reviewsCount: 154,
     description: 'Cruze o canal da mancha a bordo do trem bala Eurostar de primeira classe unindo duas metrópoles espetaculares de palácios, mimos reais e estilo insuperável.'
@@ -574,7 +574,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 4,
     originalPrice: 6500,
     currentPrice: 5800,
-    image: 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?w=800&auto=format&fit=crop&q=80',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRVI6A1j7LH6idY1ZgnF386K1oZLUIhhFidESo0HpYxMw&s=10',
     rating: 4.8,
     reviewsCount: 124,
     description: 'Acolhimento de primeira classe na serra mais elegante da América do Sul. Fondue, chocolates trufados artesanais e passeios a vinícolas clássicas.'
@@ -591,7 +591,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 4,
     originalPrice: 8500,
     currentPrice: 7600,
-    image: 'https://images.unsplash.com/photo-1483728642387-6c3bdd6c93e5?w=800&auto=format&fit=crop&q=80',
+    image: 'https://chatgpt.com/s/m_6a3468f0b04c819190b30ea6d3f41989',
     rating: 4.9,
     reviewsCount: 198,
     description: 'Sinta o luxo icônico e refinamento na Praia de Copacabana. Desfrute de mimos de primeira no Copa e traslado VIP com fura-filas para o belo Cristo Redentor.'
@@ -608,7 +608,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 6,
     originalPrice: 13900,
     currentPrice: 12500,
-    image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&auto=format&fit=crop&q=80',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQrWUXQGEGyUpoEh9-r8qsCwhTzuYV3EepdzJfcvtUdVQ&s',
     rating: 4.7,
     reviewsCount: 189,
     description: 'Frente para o mar do Caribe Mexicano em sistema de alta gastronomia e drinks finos à beira-mar livre, sem limite de consumo. Ótimos passeios para Chichén Itzá.'
@@ -625,7 +625,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 6,
     originalPrice: 12500,
     currentPrice: 11200,
-    image: 'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800&auto=format&fit=crop&q=80',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS-wUtHzzh7w0QlW1kD-6CrvbxcxRLe7uLKR4HZ1y74Gg&s=10',
     rating: 4.8,
     reviewsCount: 147,
     description: 'Resort de extensas piscinas infinitas integradas com coqueiros perfeitos e areia de coral macia e claríssima, ideal para esquecer a rotina diária.'
@@ -642,7 +642,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 7,
     originalPrice: 16900,
     currentPrice: 15300,
-    image: 'https://images.unsplash.com/photo-1509840144521-17d12a51b28e?w=800&auto=format&fit=crop&q=80',
+    image: 'https://chatgpt.com/s/m_6a346946050c8191afdf006849c3444b',
     rating: 4.9,
     reviewsCount: 182,
     description: 'Combine ruelas medievais, alta gastronomia portuguesa contemporânea, o maravilhoso Rio Douro e degustações orientadas por sommeliers nos melhores vinhedos do Porto.'
@@ -659,7 +659,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 7,
     originalPrice: 18900,
     currentPrice: 16800,
-    image: 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=800&auto=format&fit=crop&q=80',
+    image: 'https://chatgpt.com/s/m_6a3469aa8a148191bf4341160c3ca8ef',
     rating: 4.8,
     reviewsCount: 163,
     description: 'Embeleze-se com a arquitetura magnífica de Gaudí e a elite comercial do Palácio Real espanhol. Inclui visitas preferenciais ao Parque Güell e Museu do Prado.'
@@ -727,7 +727,7 @@ export const INITIAL_PACKAGES: TravelPackage[] = [
     durationNights: 10,
     originalPrice: 24500,
     currentPrice: 22500,
-    image: 'https://images.unsplash.com/photo-1528181304800-2f1908d98981?w=800&auto=format&fit=crop&q=80',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQeuKUtT2TVJGEg_DoRJ7wVaioUxDVgoS8ofdFczmewxQ&s=10',
     rating: 4.9,
     reviewsCount: 151,
     description: 'Descubra sanduários dourados e vilas suspensas ecológicas no Keemala Phuket. Inclui barcos de velocidade privativos pelas belas águas de Phi Phi Islands.'

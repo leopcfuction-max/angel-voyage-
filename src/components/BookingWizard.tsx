@@ -14,39 +14,69 @@ interface BookingWizardProps {
 
 export default function BookingWizard({ packageData, currentUser, onBookingSuccess, onCancel }: BookingWizardProps) {
   const [step, setStep] = useState<2 | 3 | 4 | 5>(2);
-  const [adultsCount, setAdultsCount] = useState(2);
+  const [adultsCount, setAdultsCount] = useState(1);
   const [childrenCount, setChildrenCount] = useState(0);
   
   // Passenger info
   const [passengers, setPassengers] = useState<Passenger[]>([
     {
-      fullName: currentUser?.name || 'Carlos Eduardo Silva',
-      cpf: '123.456.789-00',
-      document: 'RG 45.678.912-X',
-      birthDate: '15/08/1985',
+      fullName: '',
+      cpf: '',
+      document: '',
+      birthDate: '',
       nationality: 'Brasil',
       gender: 'Masculino',
-    },
-    {
-      fullName: 'Ana Carolina Mendes',
-      cpf: '987.654.321-11',
-      document: 'RG 12.345.678-Y',
-      birthDate: '24/11/1989',
-      nationality: 'Brasil',
-      gender: 'Feminino',
     }
   ]);
 
   // Seat Assignments
-  const [selectedSeats, setSelectedSeats] = useState<string[]>(['12A', '12B']);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   
   // Custom Payment Info
   const [paymentMethod, setPaymentMethod] = useState<'credit' | 'pix'>('credit');
-  const [cardHolder, setCardHolder] = useState(currentUser?.name || 'Carlos Eduardo Silva');
-  const [cardNumber, setCardNumber] = useState('4455 8822 9911 3245');
-  const [cardExpiry, setCardExpiry] = useState('09/31');
-  const [cardCVV, setCardCVV] = useState('982');
+  const [cardHolder, setCardHolder] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCVV, setCardCVV] = useState('');
   const [installments, setInstallments] = useState(1);
+
+  // Helper functions for passenger limits and count
+  const handleAdultsChange = (newCount: number) => {
+    setAdultsCount(newCount);
+    adjustPassengersList(newCount, childrenCount);
+  };
+
+  const handleChildrenChange = (newCount: number) => {
+    setChildrenCount(newCount);
+    adjustPassengersList(adultsCount, newCount);
+  };
+
+  const adjustPassengersList = (adults: number, children: number) => {
+    const total = adults + children;
+    setPassengers(prev => {
+      if (prev.length === total) return prev;
+      if (prev.length < total) {
+        const added: Passenger[] = Array.from({ length: total - prev.length }, () => ({
+          fullName: '',
+          cpf: '',
+          document: '',
+          birthDate: '',
+          nationality: 'Brasil',
+          gender: 'Masculino',
+        }));
+        return [...prev, ...added];
+      } else {
+        return prev.slice(0, total);
+      }
+    });
+
+    setSelectedSeats(prev => {
+      if (prev.length > total) {
+        return prev.slice(0, total);
+      }
+      return prev;
+    });
+  };
   
   // Coupon
   const [couponCode, setCouponCode] = useState('');
@@ -72,14 +102,15 @@ export default function BookingWizard({ packageData, currentUser, onBookingSucce
 
   // Calculates financial balances
   const basePrice = packageData.currentPrice * (adultsCount + childrenCount * 0.5);
+  const seatFeeAmount = selectedSeats.length * 150.00;
   const taxAmount = 250.00;
   
   // 5% à vista discount
   const isCashDiscount = paymentMethod === 'pix' || installments === 1;
-  const cashDiscountAmount = isCashDiscount ? basePrice * 0.05 : 0;
+  const cashDiscountAmount = isCashDiscount ? (basePrice + seatFeeAmount) * 0.05 : 0;
   
-  const couponDiscountAmount = appliedDiscount > 0 ? basePrice * appliedDiscount : 0;
-  const totalPrice = basePrice + taxAmount - cashDiscountAmount - couponDiscountAmount;
+  const couponDiscountAmount = appliedDiscount > 0 ? (basePrice + seatFeeAmount) * appliedDiscount : 0;
+  const totalPrice = basePrice + seatFeeAmount + taxAmount - cashDiscountAmount - couponDiscountAmount;
 
   // Running hold countdown
   useEffect(() => {
@@ -372,8 +403,50 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
               <p className="text-gray-400 text-xs text-left">Os nomes devem constar idênticos aos cadastrados no passaporte ou RG nacional.</p>
             </div>
 
+            {/* Passenger counters */}
+            <div className="bg-gray-50/70 rounded-xl p-4 border border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-4 text-left">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#00112f]">Quantidade de Viajantes</h3>
+                <p className="text-[10px] text-gray-400">Ajuste o número de passageiros e o sistema recalculará tarifas em tempo real.</p>
+              </div>
+              <div className="flex gap-6 items-center">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-700">Adultos:</span>
+                  <div className="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden shadow-xs">
+                    <button 
+                      type="button"
+                      onClick={() => handleAdultsChange(Math.max(1, adultsCount - 1))}
+                      className="px-2.5 py-1 text-xs font-bold hover:bg-gray-50 text-gray-500 active:bg-gray-100 transition"
+                    >-</button>
+                    <span className="px-3 py-1 text-xs font-bold font-mono text-[#00112f] bg-gray-50/50 min-w-8 text-center">{adultsCount}</span>
+                    <button 
+                      type="button"
+                      onClick={() => handleAdultsChange(adultsCount + 1)}
+                      className="px-2.5 py-1 text-xs font-bold hover:bg-gray-50 text-gray-500 active:bg-gray-100 transition"
+                    >+</button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-gray-700">Crianças:</span>
+                  <div className="flex items-center border border-gray-200 rounded-lg bg-white overflow-hidden shadow-xs">
+                    <button 
+                      type="button"
+                      onClick={() => handleChildrenChange(Math.max(0, childrenCount - 1))}
+                      className="px-2.5 py-1 text-xs font-bold hover:bg-gray-50 text-gray-500 active:bg-gray-100 transition"
+                    >-</button>
+                    <span className="px-3 py-1 text-xs font-bold font-mono text-[#00112f] bg-gray-50/50 min-w-8 text-center">{childrenCount}</span>
+                    <button 
+                      type="button"
+                      onClick={() => handleChildrenChange(childrenCount + 1)}
+                      className="px-2.5 py-1 text-xs font-bold hover:bg-gray-50 text-gray-500 active:bg-gray-100 transition"
+                    >+</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {passengers.map((passenger, idx) => (
-              <div key={idx} className="bg-gray-50/50 rounded-xl p-5 border border-gray-100 relative space-y-4 text-left">
+              <div key={idx} className="bg-gray-50/30 rounded-xl p-5 border border-gray-100 relative space-y-4 text-left">
                 <span className="absolute top-4 right-4 bg-gray-200 text-[#0f264c] font-display font-bold text-[10px] uppercase px-3 py-1 rounded-full">
                   Passageiro {idx + 1}
                 </span>
@@ -383,6 +456,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nome Completo</label>
                     <input
                       type="text"
+                      placeholder="Ex: Carlos Eduardo Silva"
                       className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
                       value={passenger.fullName}
                       onChange={(e) => updatePassenger(idx, 'fullName', e.target.value)}
@@ -393,7 +467,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">C.P.F</label>
                     <input
                       type="text"
-                      placeholder="000.000.000-00"
+                      placeholder="Ex: 123.456.789-00"
                       className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
                       value={passenger.cpf}
                       onChange={(e) => updatePassenger(idx, 'cpf', e.target.value)}
@@ -406,6 +480,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nº RG ou Passaporte</label>
                     <input
                       type="text"
+                      placeholder="Ex: RG 12.345.678-9 ou Passaporte"
                       className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
                       value={passenger.document}
                       onChange={(e) => updatePassenger(idx, 'document', e.target.value)}
@@ -416,7 +491,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <label className="block text-[11px] font-bold text-gray-700 uppercase tracking-wider mb-1">Nascimento</label>
                     <input
                       type="text"
-                      placeholder="DD/MM/AAAA"
+                      placeholder="Ex: 15/08/1985"
                       className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f] focus:ring-1 focus:ring-[#ff5a5f]"
                       value={passenger.birthDate}
                       onChange={(e) => updatePassenger(idx, 'birthDate', e.target.value)}
@@ -443,10 +518,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
               <button
                 type="button"
                 onClick={() => {
-                  setPassengers([
-                    ...passengers,
-                    { fullName: '', cpf: '', document: '', birthDate: '', nationality: 'Brasil', gender: 'Feminino' }
-                  ]);
+                  handleAdultsChange(adultsCount + 1);
                 }}
                 className="text-xs font-semibold text-[#ff5a5f] hover:underline"
               >
@@ -550,7 +622,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                   </div>
                   <div className="flex justify-between text-xs font-semibold">
                     <span>Passageiros:</span>
-                    <span className="text-gray-600">{passengers.length} Adultos</span>
+                    <span className="text-gray-600">{adultsCount} Adulto(s){childrenCount > 0 ? ` + ${childrenCount} Criança(s)` : ''}</span>
                   </div>
                   <div className="flex justify-between text-xs font-semibold">
                     <span>Assentos Reservados:</span>
@@ -559,9 +631,15 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                 </div>
 
                 <hr className="border-gray-200" />
+                {seatFeeAmount > 0 && (
+                  <div className="flex justify-between text-xs font-semibold">
+                    <span>Taxa de Assentos ({selectedSeats.length} un):</span>
+                    <span className="text-gray-600">R$ {seatFeeAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  </div>
+                )}
                 <div className="flex justify-between font-display font-extrabold text-[#00112f] text-sm">
                   <span>Subtotal Previsto:</span>
-                  <span>R$ {basePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                  <span>R$ {(basePrice + seatFeeAmount).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                 </div>
               </div>
 
@@ -682,6 +760,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                       <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Nome no Cartão</label>
                       <input
                         type="text"
+                        placeholder="Ex: CARLOS E SILVA"
                         className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f]"
                         value={cardHolder}
                         onChange={(e) => setCardHolder(e.target.value)}
@@ -692,6 +771,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                       <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Número do Cartão de Crédito</label>
                       <input
                         type="text"
+                        placeholder="Ex: 4455 8822 9911 3245"
                         className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f]"
                         value={cardNumber}
                         onChange={(e) => setCardNumber(e.target.value)}
@@ -703,6 +783,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                         <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Código CVV</label>
                         <input
                           type="text"
+                          placeholder="Ex: 123"
                           className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f]"
                           value={cardCVV}
                           onChange={(e) => setCardCVV(e.target.value)}
@@ -712,7 +793,7 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                         <label className="block text-[10px] font-bold text-gray-500 uppercase tracking-wide mb-1">Vencimento</label>
                         <input
                           type="text"
-                          placeholder="MM/AA"
+                          placeholder="Ex: MM/AA"
                           className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-800 focus:outline-none focus:border-[#ff5a5f]"
                           value={cardExpiry}
                           onChange={(e) => setCardExpiry(e.target.value)}
@@ -780,6 +861,12 @@ Desejamos a você uma extraordinária jornada de luxo e descanso!
                     <span>Pacote Base ({passengers.length} pax):</span>
                     <span>R$ {basePrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
                   </div>
+                  {seatFeeAmount > 0 && (
+                    <div className="flex justify-between text-gray-500">
+                      <span>Seleção de Poltronas ({selectedSeats.length} un):</span>
+                      <span>R$ {seatFeeAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-gray-500">
                     <span>Taxas de Serviços de Aeroportos:</span>
                     <span>R$ {taxAmount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</span>
